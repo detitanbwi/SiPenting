@@ -135,7 +135,7 @@
                 }
 
                 $.ajax({
-                    url: "{{ route('load-test.run') }}",
+                    url: "{{ route('load-test.run', [], false) }}",
                     type: "GET",
                     data: {
                         limit: batchSize,
