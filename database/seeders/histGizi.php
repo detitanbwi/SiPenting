@@ -13,20 +13,21 @@ class histGizi extends Seeder
      * Run the database seeds.
      */
     public function run(): void{
-      $bayiIds = Bayi::pluck('id')->toArray();
+        // Ambil hanya 5 bayi secara acak agar total data di bawah 100
+        $bayiIds = Bayi::inRandomOrder()->take(5)->pluck('id')->toArray();
         $insertData = [];
 
-        // Loop 12 bulan ke belakang dari bulan ini
-        for ($m = 0; $m < 12; $m++) {
+        // Loop 2 bulan ke belakang dari bulan ini
+        for ($m = 0; $m < 2; $m++) {
             $startOfMonth = now()->subMonths($m)->startOfMonth();
 
-            // Ambil tanggal 1–7 untuk bulan tersebut
+            // Ambil tanggal 1–5 untuk bulan tersebut
             $tanggalArray = [];
-            for ($i = 0; $i < 7; $i++) {
+            for ($i = 0; $i < 5; $i++) {
                 $tanggalArray[] = $startOfMonth->copy()->addDays($i)->toDateString();
             }
 
-            // Untuk setiap bayi, buat data gizi
+            // Untuk setiap bayi, buat data gizi (5 bayi * 2 bulan * 5 hari = 50 data)
             foreach ($bayiIds as $idBayi) {
                 foreach ($tanggalArray as $tanggal) {
                     $insertData[] = [

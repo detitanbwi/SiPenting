@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Carbon\Carbon;
-use App\Models\User;
 use App\Models\berat_badan;
 use Faker\Factory as Faker;
 use Illuminate\Support\Str;
@@ -204,31 +203,8 @@ class userSeeder extends Seeder
         //             }
         //         }
 
-        // Ambil semua user
-        $allUsers = User::all();
 
-        // Hitung jumlah user yang akan diambil (1/8 dari total)
-        $jumlahUser = floor($allUsers->count() / 8);
 
-        // Ambil random user sebanyak 1/8
-        $selectedUsers = $allUsers->random($jumlahUser);
-
-        $data = [];
-
-        foreach ($selectedUsers as $user) {
-            // Berat badan acak (antara 45 - 80 kg misalnya)
-            $bbNow = fake()->randomFloat(1, 45, 60);
-
-            $data[] = [
-                'bbNow' => $bbNow,
-                'id_users' => $user->id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
-
-        // Masukkan ke tabel
-        DB::table('berat_badan')->insert($data);
 
         //seeding 1000+ user jambesari
         $faker = Faker::create('id_ID');
@@ -314,24 +290,26 @@ class userSeeder extends Seeder
 
         $users = [];
 
-        // === Buat user Jambesari (1120 user total) ===
+        // === Buat user Jambesari (di bawah 50 total) ===
+        static $passwordHash;
+        if (!$passwordHash) {
+            $passwordHash = Hash::make('password');
+        }
         foreach ($villageJambesari as $villageId) {
-            $jumlah = rand(130, 150); // tiap desa Jambesari sekitar 130–150 user
+            $jumlah = 3; // 3 user per desa (total 24)
             for ($i = 0; $i < $jumlah; $i++) {
-                $users[] = $this->buatUser($faker, $villageId, $namaDepan, $namaTengah, $namaBelakang);
+                $users[] = $this->buatUser($faker, $villageId, $namaDepan, $namaTengah, $namaBelakang, $passwordHash);
             }
         }
 
-        // === Desa lainnya (10–30 user per desa) ===
-        foreach ($villageLain as $villageId) {
-            $jumlah = rand(10, 30);
-            for ($i = 0; $i < $jumlah; $i++) {
-                $users[] = $this->buatUser($faker, $villageId, $namaDepan, $namaTengah, $namaBelakang);
-            }
+        // === Desa lainnya ===
+        $selectedVillages = array_slice($villageLain, 0, 15); // ambil 15 desa saja (total 15)
+        foreach ($selectedVillages as $villageId) {
+            $users[] = $this->buatUser($faker, $villageId, $namaDepan, $namaTengah, $namaBelakang, $passwordHash);
         }
 
-        // === Tambahkan 30 user tambahan dengan NIK prefix 3509 ===
-        for ($i = 0; $i < 30; $i++) {
+        // === Tambahkan 5 user tambahan dengan NIK prefix 3509 ===
+        for ($i = 0; $i < 5; $i++) {
             $nik = '3509' . str_pad($faker->numberBetween(100000000000, 999999999999), 12, '0', STR_PAD_LEFT);
             $jumlahKata = $faker->numberBetween(2, 3);
             $namaIbu = $faker->randomElement($namaDepan);
@@ -349,7 +327,7 @@ class userSeeder extends Seeder
                 'role' => 2,
                 // random dari desa selain Jambesari biar lebih menyebar
                 'id_villages' => $faker->randomElement($villageLain),
-                'password' => Hash::make('password'),
+                'password' => $passwordHash,
                 'id_subs' => null,
                 'remember_token' => Str::random(10),
                 'created_at' => now(),
@@ -363,7 +341,7 @@ class userSeeder extends Seeder
         }
     }
 
-    private function buatUser($faker, $villageId, $namaDepan, $namaTengah, $namaBelakang)
+    private function buatUser($faker, $villageId, $namaDepan, $namaTengah, $namaBelakang, $passwordHash)
     {
         $nik = '3511' . str_pad($faker->unique()->numberBetween(100000000000, 999999999999), 12, '0', STR_PAD_LEFT);
         $jumlahKata = $faker->numberBetween(2, 3);
@@ -381,7 +359,7 @@ class userSeeder extends Seeder
             'tinggiBadan' => $faker->randomFloat(1, 140, 175),
             'role' => 1,
             'id_villages' => $villageId,
-            'password' => Hash::make('password'),
+            'password' => $passwordHash,
             'id_subs' => null,
             'remember_token' => Str::random(10),
             'created_at' => now(),

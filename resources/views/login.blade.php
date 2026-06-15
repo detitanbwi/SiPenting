@@ -34,6 +34,9 @@
 
         <button type="submit" class="btn btn-primary w-100 mt-2">Masuk</button>
     </form>
+    <div class="text-center mt-2">
+        <a href="{{ route('load-test.view') }}">Uji Coba Load Test</a>
+    </div>
     </div>
 </body>
 </html>

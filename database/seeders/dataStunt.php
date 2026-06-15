@@ -10,29 +10,34 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class dataStunt extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // $csvFile = Storage::path('public\stunt.csv');
-        $csvFile = storage_path('app/public/stunt.csv');
-        $file = fopen($csvFile, "r");
-
-        while (($data = fgetcsv($file, 1000, ",")) !== FALSE) {
-            DB::table('data_stunt')->insert([
-                'Umur (bulan)' => $data['1'],
-                'Panjang Badan (cm) -3 SD' => $data['2'],
-                'Panjang Badan (cm) -2 SD' => $data['3'],
-                'Panjang Badan (cm) -1 SD' => $data['4'],
-                'Panjang Badan (cm) Median' => $data['5'],
-                'Panjang Badan (cm) +1 SD' => $data['6'],
-                'Panjang Badan (cm) +2 SD' => $data['7'],
-                'Panjang Badan (cm) +3 SD' => $data['8'],
-                'kelamin' => $data['9'],
-            ]);
+        $data = [];
+        
+        // Generate WHO-like length/height standard growth data for ages 0 to 60 months
+        foreach (['Laki-laki', 'Perempuan'] as $gender) {
+            // Girls are slightly shorter on average than boys
+            $offset = $gender === 'Perempuan' ? -0.5 : 0;
+            
+            for ($age = 0; $age <= 60; $age++) {
+                // growth formula: starts at ~50cm, grows to ~110cm at 60 months
+                $median = 49.5 + $offset + 7.6 * sqrt($age);
+                
+                $data[] = [
+                    'Umur (bulan)' => $age,
+                    'Panjang Badan (cm) -3 SD' => round($median - 6.0, 1),
+                    'Panjang Badan (cm) -2 SD' => round($median - 4.0, 1),
+                    'Panjang Badan (cm) -1 SD' => round($median - 2.0, 1),
+                    'Panjang Badan (cm) Median' => round($median, 1),
+                    'Panjang Badan (cm) +1 SD' => round($median + 2.0, 1),
+                    'Panjang Badan (cm) +2 SD' => round($median + 4.0, 1),
+                    'Panjang Badan (cm) +3 SD' => round($median + 6.0, 1),
+                    'kelamin' => $gender,
+                ];
+            }
         }
 
-        fclose($file);
+        // Batch insert data_stunt
+        DB::table('data_stunt')->insert($data);
     }
 }

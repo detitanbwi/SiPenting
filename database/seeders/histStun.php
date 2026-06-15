@@ -13,11 +13,13 @@ class histStun extends Seeder
      * Run the database seeds.
      */
     public function run(): void{
-        $bayiIds = bayi::pluck('id')->toArray();
+        // Ambil hanya 5 bayi secara acak agar total data di bawah 100
+        $bayiIds = bayi::inRandomOrder()->take(5)->pluck('id')->toArray();
         $insertData = [];
 
-        // 12 bulan terakhir
-        for ($m = 11; $m >= 0; $m--) {
+        // 2 bulan terakhir
+        $bulanArray = [];
+        for ($m = 1; $m >= 0; $m--) {
             $bulanArray[$m] = now()->subMonths($m)->startOfMonth();
         }
 
@@ -27,9 +29,9 @@ class histStun extends Seeder
             // 1: sangat pendek, 2: pendek, 3: normal, 4: tinggi
 
             foreach ($bulanArray as $startOfMonth) {
-                // Buat tanggal 1–7 setiap bulan
+                // Buat tanggal 1–5 setiap bulan
                 $tanggalArray = [];
-                for ($i = 0; $i < 7; $i++) {
+                for ($i = 0; $i < 5; $i++) {
                     $tanggalArray[] = $startOfMonth->copy()->addDays($i)->toDateString();
                 }
 
@@ -44,7 +46,7 @@ class histStun extends Seeder
                 }
                 // sisanya stabil
 
-                // Masukkan data untuk minggu pertama bulan ini
+                // Masukkan data untuk minggu pertama bulan ini (5 bayi * 2 bulan * 5 hari = 50 data)
                 foreach ($tanggalArray as $tanggal) {
                     $insertData[] = [
                         'tanggal' => $tanggal,
