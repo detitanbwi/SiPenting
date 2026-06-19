@@ -34,6 +34,13 @@ class bayiController extends Controller
                 
                 $umurArray = [$year, $month, $day];
                 $bayi->umur = $umurArray;
+
+                // Ambil status stunting terbaru
+                $latestStun = \App\Models\hist_stun::where('id_bayi', $bayi->id)
+                    ->orderBy('tanggal', 'desc')
+                    ->orderBy('id', 'desc')
+                    ->first();
+                $bayi->status_stunting = $latestStun ? (int)$latestStun->jenis : null;
             }
 
             return ResponseFormatter::success($dataBayi,'Data Bayi Berhasil Didapat!');
