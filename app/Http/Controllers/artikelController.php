@@ -14,9 +14,12 @@ use Carbon\Carbon;
 
 class artikelController extends Controller
 {
-    public function index() {
+    public function index(Request $request) {
         try {
-            $dataArtikel = artikel::get();
+            $kategori = $request->query('kategori');
+            $dataArtikel = artikel::when($kategori, function ($query, $kategori) {
+                return $query->where('kategori', $kategori);
+            })->get();
     
             $dataArtikel->transform(function($artikel) { 
                 // Format created_at ke format 'Hari, tanggal-nama bulan-yyyy'
@@ -54,6 +57,7 @@ class artikelController extends Controller
     public function storeArtikel(Request $request) {
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:120',
+            'kategori' => 'required|string|max:50',
             'deskripsi' => 'required|string',
             'gambar' => 'required|max:3000|mimes:png,jpg',
             'video' => 'nullable|string|url',
@@ -71,6 +75,7 @@ class artikelController extends Controller
             
             $data = artikel::create([
                 'judul' => $request->judul,
+                'kategori' => $request->kategori,
                 'deskripsi' => $request->deskripsi,
                 'gambar' => $nameGambar,
                 'url_video' => $request->video,
@@ -86,6 +91,7 @@ class artikelController extends Controller
     public function updateArtikel(Request $request, $id) {
         $validator = Validator::make($request->all(), [
             'judul' => 'string|max:120',
+            'kategori' => 'string|max:50',
             'deskripsi' => 'string',
             'gambar' => 'max:3000|mimes:png,jpg',
             'video' => 'nullable|string|url',
@@ -99,6 +105,7 @@ class artikelController extends Controller
             $data = artikel::find($id);
             $updateData = [
                 'judul' => $request->judul, 
+                'kategori' => $request->kategori, 
                 'deskripsi' => $request->deskripsi,
                 'url_video' =>$request->video
             ];

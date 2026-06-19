@@ -14,7 +14,13 @@ return new class extends Migration
     {
         $path = database_path('migrations/indonesia.sql');
         $sql = file_get_contents($path);
-        DB::unprepared($sql);
+        $queries = preg_split('/;\s*[\r\n]+/', $sql);
+        foreach ($queries as $query) {
+            $query = trim($query);
+            if (!empty($query)) {
+                DB::unprepared($query);
+            }
+        }
         
         // Schema::create('desa', function (Blueprint $table) {
         //     $table->id();

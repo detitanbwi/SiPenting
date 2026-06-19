@@ -16,6 +16,7 @@ class artikelSeeder extends Seeder
         DB::table('artikel')->insert([
             [
                 'judul' => 'Judul A',
+                'kategori' => 'Pencegahan',
                 'deskripsi' => 'Ini adalah deskripsi dari Judul A Ini adalah deskripsi dari Judul A Ini adalah deskripsi dari Judul A Ini adalah deskripsi dari Judul A',
                 'gambar' => "gambar1",
                 'url_video' => "https://www.youtube.com/watch?v=RH9zOxSGoHg",
@@ -25,6 +26,7 @@ class artikelSeeder extends Seeder
         DB::table('artikel')->insert([
             [
                 'judul' => 'Judul B',
+                'kategori' => 'Nutrisi',
                 'deskripsi' => 'Ini adalah deskripsi dari Judul B Ini adalah deskripsi dari Judul B Ini adalah deskripsi dari Judul B Ini adalah deskripsi dari Judul B',
                 'gambar' => "gambar2",
                 'url_video' => "https://www.youtube.com/watch?v=RH9zOxSGoHg",
@@ -34,6 +36,7 @@ class artikelSeeder extends Seeder
         DB::table('artikel')->insert([
             [
                 'judul' => 'Judul C',
+                'kategori' => 'Edukasi',
                 'deskripsi' => 'Ini adalah deskripsi dari Judul C Ini adalah deskripsi dari Judul C Ini adalah deskripsi dari Judul C Ini adalah deskripsi dari Judul C',
                 'gambar' => "gambar3",
                 'url_video' => "",

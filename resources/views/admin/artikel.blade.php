@@ -36,6 +36,7 @@
                         <tr>
                             <th>No.</th>
                             <th>Judul</th>
+                            <th>Kategori</th>
                             <th>Deskripsi</th>
                             <th>Gambar</th>
                             <th>Video</th>
@@ -70,6 +71,21 @@
                   <label for="judul">Judul <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" name="judul" id="judul" placeholder="Isi Judul" autofocus autocomplete="off">
                   <div class="invalid-feedback judul_error"></div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                <div class="form-group">
+                  <label for="kategori">Kategori <span class="text-danger">*</span></label>
+                  <select class="form-control" name="kategori" id="kategori">
+                    <option value="" disabled selected>Pilih Kategori</option>
+                    <option value="Pencegahan">Pencegahan</option>
+                    <option value="Nutrisi">Nutrisi</option>
+                    <option value="Edukasi">Edukasi</option>
+                    <option value="Kesehatan">Kesehatan</option>
+                  </select>
+                  <div class="invalid-feedback kategori_error"></div>
                 </div>
               </div>
             </div>
@@ -206,6 +222,14 @@
                 },
                 {
                     targets: 2,
+                    data: 'kategori',
+                    className: 'text-center align-middle',
+                    render: function(data, type, row, meta) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    targets: 3,
                     data: 'deskripsi',
                     className: 'text-center align-middle scrollable-description',
                     render: function(data, type, row, meta) {
@@ -213,7 +237,7 @@
                     }
                 },
                 {
-                  targets: 3,
+                  targets: 4,
                   data: 'gambar',
                   className: 'text-center align-middle',
                   render: function(data, type, row, meta) {
@@ -227,7 +251,7 @@
                     }
                 },
                 {
-                  targets: 4,
+                  targets: 5,
                   data: 'url_video',
                   className: 'text-center align-middle',
                   render: function(data, type, row, meta) {
@@ -239,7 +263,7 @@
                     }
                 },
                 {
-                    targets: 5,
+                    targets: 6,
                     data: 'created_at',
                     className: 'text-center align-middle',
                     render: function(data, type, row, meta) {
@@ -254,7 +278,7 @@
                     }
                 },
                 {
-                    targets: 6,
+                    targets: 7,
                     data: null,
                     className: 'text-center align-middle',
                     render: function(data, type, row, meta) {
@@ -346,6 +370,7 @@
             
             // set form action
             $('input[name="judul"]').val(data.judul);
+            $('select[name="kategori"]').val(data.kategori);
             $('textarea[name="deskripsi"]').val(data.deskripsi);
             $('input[name="video"]').val(data.url_video);
 
