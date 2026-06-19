@@ -61,6 +61,7 @@ Route::middleware(['guest'])->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::get('kecamatan', [AuthController::class, 'getKecamatan']);
     Route::post('desa', [AuthController::class, 'getDesa']);
+    Route::get('artikel', [artikelController::class, 'index']);
 });
 
 Route::middleware(['auth:api', 'role:1,2'])->group(function () {
@@ -100,9 +101,7 @@ Route::middleware(['auth:api', 'role:1,3'])->group(function () {
     });
 
 
-    Route::group(['prefix'=>'artikel'], function () {
-        Route::get('/',[artikelController::class, 'index'])->name('index');
-    });
+
 
 
     // PUSH NOTIFICATION
