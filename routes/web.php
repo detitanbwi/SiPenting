@@ -91,9 +91,6 @@ Route::middleware(['auth:bidan,puskesmas,bapeda','check'])->group(function() {
 
 
 
-Route::get('/load-test', [dashboardController::class, 'loadTestView'])->name('load-test.view');
-Route::get('/load-test/run', [dashboardController::class, 'loadTestRun'])->name('load-test.run');
-
 Route::group(['prefix' => 'bidan'], function () {
     Route::get('/', [AuthController::class, 'viewRegisterBidan'])->name('viewRegisterBidan');
     Route::post('/register', [AuthController::class, 'registerBidan'])->name('registerBidan');

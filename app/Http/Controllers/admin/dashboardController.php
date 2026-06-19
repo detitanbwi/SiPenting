@@ -580,31 +580,5 @@ class dashboardController extends Controller
         $nama = villages::find($village_id)?->name;
         return Excel::download(new ExportData($village_id, 'desa', 'stunting'), 'data-stunting-desa-' . $nama . '.xlsx');
     }
-
-    public function loadTestView() {
-        $totalUsers = User::count();
-        return view('admin.loadTest', compact('totalUsers'));
-    }
-
-    public function loadTestRun(Request $request) {
-        $start = microtime(true);
-        
-        $limit = $request->input('limit', 10);
-        $offset = $request->input('offset', 0);
-        
-        // Simulasikan load database dengan query relasi
-        $data = User::with(['village.district'])
-            ->offset($offset)
-            ->limit($limit)
-            ->get();
-            
-        $duration = (microtime(true) - $start) * 1000;
-        
-        return response()->json([
-            'status' => 'success',
-            'duration' => round($duration, 2),
-            'count' => count($data)
-        ]);
-    }
 }
 
