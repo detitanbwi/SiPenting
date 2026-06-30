@@ -6,6 +6,7 @@ use Exception;
 use App\Models\User;
 use App\Models\villages;
 use App\Models\districts;
+use App\Models\regencies;
 use App\Models\akun_bidan;
 use App\Models\akun_bapeda;
 use App\Models\akun_dinkes;
@@ -57,7 +58,7 @@ class AuthController extends Controller
 
         // if(preg_match('/^3511/', $username)){ // sementara comment untuk pengujian
         if($username){
-            // Cek jika username warga bondowoso ada di database
+            // Cek jika username warga ada di database
             $user = User::where('username', $username)->first();
         }elseif (empty($username)) {
             // cek guest -> idnya 7 di database user '1919191919191919' sebagai default
@@ -220,28 +221,46 @@ class AuthController extends Controller
         }
     }
 
-    public function getKecamatan() {
-        $data = districts::where('regency_id',3511)->get();
+    // ID kabupaten yang didukung: Bondowoso, Jember, Lumajang, Banyuwangi, Situbondo
+    const KABUPATEN_IDS = [3511, 3509, 3508, 3510, 3512];
 
-        return ResponseFormatter::success($data, 'Berhasil Mendapatkan Data!');
+    public function getKabupaten() {
+        try {
+            $data = regencies::whereIn('id', self::KABUPATEN_IDS)->orderBy('name')->get();
+            return ResponseFormatter::success($data, 'Berhasil Mendapatkan Data!');
+        } catch (Exception $e) {
+            return ResponseFormatter::error(null, $e->getMessage(), 500);
+        }
+    }
+
+    public function getKecamatan(Request $request) {
+        try {
+            $kabupatenId = $request->id_kabupaten ?? 3511;
+            // Pastikan hanya kabupaten yang didukung
+            if (!in_array((int)$kabupatenId, self::KABUPATEN_IDS)) {
+                return ResponseFormatter::error(null, 'Kabupaten tidak didukung.', 422);
+            }
+            $data = districts::where('regency_id', $kabupatenId)->orderBy('name')->get();
+            return ResponseFormatter::success($data, 'Berhasil Mendapatkan Data!');
+        } catch (Exception $e) {
+            return ResponseFormatter::error(null, $e->getMessage(), 500);
+        }
     }
 
     public function getDesa(Request $request) {
-        try{
-            if(isset($request->id_kecamatan)){
-                $data = villages::where('district_id',$request->id_kecamatan)->get();
+        try {
+            if (isset($request->id_kecamatan)) {
+                $data = villages::where('district_id', $request->id_kecamatan)->orderBy('name')->get();
                 return ResponseFormatter::success($data, 'Berhasil Mendapatkan Data!');
-            }else{
-                $data = villages::whereIn('district_id',
-                [3511010,3511020,3511030,3511031,3511040,3511050,3511060,3511061,3511070,3511080,3511090,3511100,
-                3511110,3511111,3511120,3511130,3511140,3511141,3511150,3511151,3511152,3511160,3511170]
-                )->get();
+            } else {
+                // Fallback: ambil semua desa dari kabupaten yang didukung
+                $districtIds = districts::whereIn('regency_id', self::KABUPATEN_IDS)->pluck('id');
+                $data = villages::whereIn('district_id', $districtIds)->orderBy('name')->get();
                 return ResponseFormatter::success($data, 'Berhasil Mendapatkan Data!');
             }
-        }catch(Exception $e){
-            return ResponseFormatter::error(null,$e->getMessage(),500);
+        } catch (Exception $e) {
+            return ResponseFormatter::error(null, $e->getMessage(), 500);
         }
-
     }
 
     public function getIdSubs(Request $request){

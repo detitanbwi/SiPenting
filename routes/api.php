@@ -56,11 +56,13 @@ Route::get('/kontak/', function() {
     return ResponseFormatter::success($waLink,"Berhasil Mendapatkan Link Whatsapp!");
 });
 
+Route::get('kabupaten', [AuthController::class, 'getKabupaten'])->name('api.kabupaten');
+Route::get('kecamatan', [AuthController::class, 'getKecamatan'])->name('api.kecamatan');
+Route::post('desa', [AuthController::class, 'getDesa'])->name('api.desa');
+
 Route::middleware(['guest'])->group(function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('register', [AuthController::class, 'register']);
-    Route::get('kecamatan', [AuthController::class, 'getKecamatan']);
-    Route::post('desa', [AuthController::class, 'getDesa']);
     Route::get('artikel', [artikelController::class, 'index']);
 });
 

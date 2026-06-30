@@ -8,6 +8,7 @@ use App\Models\bayi;
 use App\Models\User;
 use App\Models\villages;
 use App\Models\districts;
+use App\Models\regencies;
 use App\Models\hist_gizi;
 use App\Models\hist_stun;
 use App\Exports\ExportData;
@@ -82,9 +83,14 @@ class dashboardController extends Controller
                 return ResponseFormatter::error($e->getMessage(), "Data gagal diproses. Kesalahan Server", 500);
             }
         }
-        $dataKecamatan = districts::where("regency_id",3511)->get();
-        $dataDesaBondowoso = villages::where("district_id",3511100)->get();
-        return view('admin.akunPuskesmas', ["dataKecamatan" => $dataKecamatan,"dataDesaBondowoso" => $dataDesaBondowoso]);
+        // Kabupaten yang didukung: Bondowoso, Jember, Lumajang, Banyuwangi, Situbondo
+        $kabupatenIds = [3511, 3509, 3508, 3510, 3512];
+        $dataKabupaten = regencies::whereIn('id', $kabupatenIds)->orderBy('name')->get();
+        $dataKecamatan = districts::where("regency_id", 3511)->orderBy('name')->get();
+        return view('admin.akunPuskesmas', [
+            "dataKabupaten" => $dataKabupaten,
+            "dataKecamatan" => $dataKecamatan,
+        ]);
     }
 
     public function addPuskesmas(Request $request) {

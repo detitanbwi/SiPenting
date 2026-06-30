@@ -35,7 +35,7 @@
             <i class="fas fa-map-marker-alt"></i>
         </div>
         <div>
-            <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Warga Bondowoso</div>
+            <div class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Warga</div>
             <div class="text-2xl font-bold text-slate-900 mt-0.5">{{ $jumlahPenggunaNik3511 }}</div>
         </div>
     </div>
@@ -129,7 +129,7 @@
     var myNikChart = new Chart(ctx2, {
         type: 'doughnut',
         data: {
-            labels: ["Warga Bondowoso", "Non-Warga"],
+            labels: ["Warga", "Non-Warga"],
             datasets: [{
                 backgroundColor: ["#10b981", "#f59e0b"],
                 hoverBackgroundColor: ["#059669", "#d97706"],

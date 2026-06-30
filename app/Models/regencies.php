@@ -5,22 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class districts extends Model
+class regencies extends Model
 {
     use HasFactory;
 
-    protected $table = 'districts';
+    protected $table = 'regencies';
 
     public $timestamps = false;
 
-    protected $fillable= [
+    protected $fillable = [
         'id',
-        'regency_id',
+        'province_id',
         'name',
     ];
 
-    public function regency()
+    public function districts()
     {
-        return $this->belongsTo(regencies::class, 'regency_id');
+        return $this->hasMany(districts::class, 'regency_id');
     }
 }

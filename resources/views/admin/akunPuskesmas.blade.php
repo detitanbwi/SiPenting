@@ -83,11 +83,23 @@
             <div class="row">
               <div class="col-12">
                   <div class="form-group">
+                  <label for="kabupaten">Kabupaten <span class="text-danger">*</span></label>
+                  <select class="form-select" name="kabupaten" id="kabupaten">
+                    <option value="">-- Pilih Kabupaten --</option>
+                    @foreach ($dataKabupaten as $kab)
+                        <option value="{{ $kab->id }}">{{ $kab->name }}</option>
+                    @endforeach
+                  </select>
+                  <div class="invalid-feedback kabupaten_error"></div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                  <div class="form-group">
                   <label for="kec">Kecamatan <span class="text-danger">*</span></label>
                   <select class="form-select" name="kec" id="kec">
-                    @foreach ($dataKecamatan as $kecamatan)
-                        <option class="" value="{{ $kecamatan->id }}">{{ $kecamatan->name }}</option>
-                    @endforeach
+                    <option value="">-- Pilih Kecamatan --</option>
                   </select>
                   <div class="invalid-feedback kec_error"></div>
                 </div>
@@ -182,21 +194,37 @@
             }
         });
 
-        const desaBondowosoRaw = @json($dataDesaBondowoso);
-        const desaBondowoso = desaBondowosoRaw.map(d => ({
-            value: d.id,
-            label: d.name
-        }));
-
         let desaChoices = null;
 
+        // Ketika kabupaten berubah, fetch kecamatan
+        document.getElementById('kabupaten').addEventListener('change', function () {
+            const kabupatenId = this.value;
+            const kecSelect = document.getElementById('kec');
+            kecSelect.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
+            // reset desa
+            initDesaChoices(null);
+
+            if (!kabupatenId) return;
+
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('api.kecamatan') }}',
+                data: { id_kabupaten: kabupatenId },
+                success: function(response) {
+                    if (response.data) {
+                        response.data.forEach(function(kec) {
+                            kecSelect.append(new Option(kec.name, kec.id));
+                        });
+                    }
+                }
+            });
+        });
+
+        // Ketika kecamatan berubah, fetch desa
         document.getElementById('kec').addEventListener('change', function () {
             const selectedKec = this.value;
             initDesaChoices(selectedKec);
         });
-
-
-        const dataKecamatan = @json($dataKecamatan);
 
         var idAkunPuskesmas;
         let url;
@@ -281,17 +309,34 @@
             // set nilai form
             $('input[name="nama"]').val(data.name);
             $('input[name="nomor"]').val(data.nomor);
-            $('#kec').val(data.districts.id)
 
             // Ambil ID kecamatan dan desa terpilih
             const districtId = data.districts.id;
+            const regencyId = data.districts.regency_id;
             const desaTerpilih = data.villages.map(v => v.id.toString());
 
-            // Inisialisasi desa berdasarkan kecamatan yang dimiliki data
-            initDesaChoices(districtId, desaTerpilih);
-            
-            // show modal
-            $('#modal-akun').modal('show');
+            // Set kabupaten, lalu fetch kecamatan, lalu set kecamatan dan desa
+            $('#kabupaten').val(regencyId);
+            const kecSelect = document.getElementById('kec');
+            kecSelect.innerHTML = '<option value="">-- Pilih Kecamatan --</option>';
+
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('api.kecamatan') }}',
+                data: { id_kabupaten: regencyId },
+                success: function(response) {
+                    if (response.data) {
+                        response.data.forEach(function(kec) {
+                            kecSelect.append(new Option(kec.name, kec.id));
+                        });
+                    }
+                    $('#kec').val(districtId);
+                    // Inisialisasi desa berdasarkan kecamatan yang dimiliki data
+                    initDesaChoices(districtId, desaTerpilih);
+                    // show modal
+                    $('#modal-akun').modal('show');
+                }
+            });
         });
 
         // Submit Form Create/edit akun
@@ -410,52 +455,66 @@
             const desaContainer = document.getElementById('desa-container');
             const desaElement = document.getElementById('desa');
 
-            if (kecamatanId === '3511100' || kecamatanId === 3511100) {
-                desaContainer.style.display = 'block';
-
-                desaElement.innerHTML = '';
-
-                if (desaChoices) {
-                    desaChoices.destroy();
-                }
-
-                // Tambahkan pilihan desa
-                desaBondowoso.forEach(desa => {
-                    const opt = document.createElement('option');
-                    opt.value = desa.value;
-                    opt.text = desa.label;
-                    if (desaTerpilih.includes(desa.value.toString())) {
-                        opt.selected = true;
-                    }
-                    desaElement.appendChild(opt);
-                });
-
-                desaChoices = new Choices(desaElement, {
-                    removeItemButton: true,
-                    placeholder: true,
-                    placeholderValue: 'Pilih desa',
-                    noResultsText: 'Tidak ada desa',
-                    itemSelectText: 'Klik untuk pilih',
-                    shouldSort: false
-                });
-
-                desaChoices.setChoices(
-                    Array.from(desaElement.options).map(opt => ({
-                        value: opt.value,
-                        label: opt.text,
-                        selected: opt.selected
-                    })),
-                    'value',
-                    'label',
-                    true
-                );
-            } else {
+            if (!kecamatanId) {
                 desaContainer.style.display = 'none';
                 if (desaChoices) {
                     desaChoices.destroy();
                     desaChoices = null;
                 }
+                desaElement.innerHTML = '';
+                return;
             }
+
+            desaContainer.style.display = 'block';
+            desaElement.innerHTML = '';
+
+            if (desaChoices) {
+                desaChoices.destroy();
+                desaChoices = null;
+            }
+
+            // Fetch desa berdasarkan kecamatan via AJAX
+            $.ajax({
+                type: 'POST',
+                url: '{{ route('api.desa') }}',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    id_kecamatan: kecamatanId
+                },
+                success: function(response) {
+                    if (response.data) {
+                        response.data.forEach(function(desa) {
+                            const opt = document.createElement('option');
+                            opt.value = desa.id;
+                            opt.text = desa.name;
+                            if (desaTerpilih.includes(desa.id.toString())) {
+                                opt.selected = true;
+                            }
+                            desaElement.appendChild(opt);
+                        });
+                    }
+
+                    desaChoices = new Choices(desaElement, {
+                        removeItemButton: true,
+                        placeholder: true,
+                        placeholderValue: 'Pilih desa',
+                        noResultsText: 'Tidak ada desa',
+                        itemSelectText: 'Klik untuk pilih',
+                        shouldSort: false
+                    });
+
+                    desaChoices.setChoices(
+                        Array.from(desaElement.options).map(opt => ({
+                            value: opt.value,
+                            label: opt.text,
+                            selected: opt.selected
+                        })),
+                        'value',
+                        'label',
+                        true
+                    );
+                }
+            });
         }
     })
 </script>
