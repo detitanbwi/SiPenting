@@ -85,9 +85,9 @@
                                     <label for="kategori">Kategori <span class="text-danger">*</span></label>
                                     <select class="form-control" name="kategori" id="kategori">
                                         <option value="" disabled selected>Pilih Kategori</option>
-                                        <option value="Pencegahan">Balita</option>
-                                        <option value="Nutrisi">Remaja/Catin</option>
-                                        <option value="Edukasi">Ibu Hamil</option>
+                                        <option value="Balita">Balita</option>
+                                        <option value="Remaja/Catin">Remaja/Catin</option>
+                                        <option value="Ibu Hamil">Ibu Hamil</option>
                                     </select>
                                     <div class="invalid-feedback kategori_error"></div>
                                 </div>
@@ -284,7 +284,7 @@
                                     year: 'numeric'
                                 };
                                 return date.toLocaleDateString('id-ID',
-                                options); // 'id-ID' for Indonesian locale, adjust as needed
+                                    options); // 'id-ID' for Indonesian locale, adjust as needed
                             }
                             return data;
                         }
@@ -356,7 +356,7 @@
                                     message = value;
                                     $('*[name="' + key + '"]').addClass('is-invalid');
                                     $('.invalid-feedback.' + key + '_error').html(
-                                    value);
+                                        value);
                                 });
                                 Swal.fire({
                                     icon: 'error',
