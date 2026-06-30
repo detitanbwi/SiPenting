@@ -180,6 +180,8 @@ class AuthController extends Controller
     public function getUser()
     {
         $user = Auth::user()->makeHidden('password');
+        // Load relasi wilayah: desa → kecamatan → kabupaten
+        $user->load('village.district.regency');
         return ResponseFormatter::success($user, "Data User Berhasil Didapat!");
     }
 
