@@ -16,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== 'localhost' && $_SERVER['HTTP_HOST'] !== '127.0.0.1') {
+        if (app()->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
     }
