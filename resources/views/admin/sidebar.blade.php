@@ -89,11 +89,15 @@
     </nav>
     
     <!-- Footer Section -->
-    <div class="py-3 px-6 border-t border-slate-800/80 bg-slate-950/40 flex flex-col gap-1">
+    <div class="sidebar-footer py-3 px-6 border-t border-slate-800/80 bg-slate-950/40 flex flex-col gap-2">
         <div class="sidebar-footer-text text-[10px] text-slate-500 font-medium uppercase tracking-wider">Pengguna:</div>
         <div class="sidebar-footer-text text-xs text-slate-400 font-normal truncate flex items-center gap-2">
             <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
             {{ auth()->user()->name ?? auth('puskesmas')->user()->name ?? auth('bapeda')->user()->name ?? 'Tidak Dikenal' }}
         </div>
+        <a href="{{ route('logout-web') }}" class="sidebar-logout-btn mt-2 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="sidebar-text">Keluar</span>
+        </a>
     </div>
 </div>

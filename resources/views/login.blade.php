@@ -5,35 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="{{ asset('src/img/logo.png') }}" type="image/png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="wrapper">
-    <div class="logo">
-        <img src="{{ asset('src/img/logo.png') }}" alt="">
-    </div>
-    <div class="text-center mt-4 name">
-        Sipenting
-    </div>
+    <div class="container">
+        <div class="login-wrapper">
+            <div class="logo-container">
+                <img src="{{ asset('src/img/logo.png') }}" alt="Logo Sipenting" class="logo">
+            </div>
+            
+            <h1 class="app-title">Sipenting</h1>
+            <p class="subtitle">Sistem Informasi Pencegahan Stunting</p>
 
-    <!-- Tombol Role -->
-    <div class="d-flex flex-column px-3 mt-4">
-        <span class="mb-2 text-muted text-center">Admin Sebagai:</span>
-        <div class="d-flex justify-content-between" style="gap: 1rem;">
-            <button type="button" class="btn role-btn active" id="btn-bapeda">Bapeda</button>
-            <button type="button" class="btn role-btn inactive" id="btn-puskesmas">Puskesmas</button>
+            <!-- Tombol Role -->
+            <div class="role-selector">
+                <button type="button" class="role-btn active" id="btn-bapeda" data-role="bapeda">
+                    <i class="fas fa-building"></i>
+                    <span>Bapeda</span>
+                </button>
+                <button type="button" class="role-btn" id="btn-puskesmas" data-role="puskesmas">
+                    <i class="fas fa-hospital"></i>
+                    <span>Puskesmas</span>
+                </button>
+            </div>
+
+            <!-- Form Login -->
+            <form id="form-login" method="POST" action="{{ route('login-web-bapeda') }}">
+                @csrf
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" id="username" placeholder="Masukkan username" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="password" placeholder="Masukkan password" required>
+                        <button type="button" class="toggle-password" id="togglePassword">
+                            <i class="fas fa-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">Masuk</button>
+            </form>
         </div>
-    </div>
-
-    <!-- Form Login -->
-    <form class="p-3 mt-4" id="form-login" method="POST" action="{{ route('login-web-bapeda') }}">
-        @csrf
-        <div class="form-field d-flex align-items-center mb-4">
-        <span class="fas fa-lock"></span>
-        <input type="password" name="password" id="password" placeholder="Masukkan Password" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100 mt-2">Masuk</button>
-    </form>
     </div>
 </body>
 </html>
@@ -44,147 +65,257 @@
   const btnBapeda = document.getElementById('btn-bapeda');
   const btnPuskesmas = document.getElementById('btn-puskesmas');
   const form = document.getElementById('form-login');
+  const togglePassword = document.getElementById('togglePassword');
+  const passwordInput = document.getElementById('password');
+  const eyeIcon = document.getElementById('eyeIcon');
 
   btnBapeda.addEventListener('click', () => {
     form.action = "{{ route('login-web-bapeda') }}";
     btnBapeda.classList.add('active');
-    btnBapeda.classList.remove('inactive');
-    btnPuskesmas.classList.add('inactive');
     btnPuskesmas.classList.remove('active');
   });
 
   btnPuskesmas.addEventListener('click', () => {
     form.action = "{{ route('login-web-puskesmas') }}";
     btnPuskesmas.classList.add('active');
-    btnPuskesmas.classList.remove('inactive');
-    btnBapeda.classList.add('inactive');
     btnBapeda.classList.remove('active');
+  });
+
+  // Toggle password visibility
+  togglePassword.addEventListener('click', () => {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    
+    // Toggle eye icon
+    if (type === 'text') {
+      eyeIcon.classList.remove('fa-eye');
+      eyeIcon.classList.add('fa-eye-slash');
+    } else {
+      eyeIcon.classList.remove('fa-eye-slash');
+      eyeIcon.classList.add('fa-eye');
+    }
   });
 </script>
 
 <style>
-  /* Importing fonts from Google */
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    .role-btn {
-        width: 49%;
-        transition: all 0.3s ease;
-        font-weight: 600;
-    }
-
-    /* Tombol aktif: warna cerah dan jelas */
-    .role-btn.active {
-        background-color: #ff6b00; /* oranye terang */
-        color: white;
-        opacity: 1;
-    }
-
-    /* Tombol tidak aktif: warna pudar */
-    .role-btn.inactive {
-        background-color: #ff6b00;
-        color: white;
-        opacity: 0.5;
-    }
-
-  /* Reseting */
   * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
   }
 
   body {
-      background: #ecf0f3;
+      font-family: 'Inter', sans-serif;
+      background-color: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
   }
 
-  .wrapper {
-      max-width: 350px;
-      min-height: 500px;
-      margin: 80px auto;
-      padding: 40px 30px 30px 30px;
-      background-color: #ecf0f3;
-      border-radius: 15px;
-      box-shadow: 13px 13px 20px #cbced1, -13px -13px 20px #fff;
+  .container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+  }
+
+  .login-wrapper {
+      background: white;
+      border-radius: 8px;
+      padding: 40px 32px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .logo-container {
+      text-align: center;
+      margin-bottom: 24px;
   }
 
   .logo {
-      width: 80px;
-      margin: auto;
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
   }
 
-  .logo img {
-      width: 100%;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 50%;
-      box-shadow: 0px 0px 3px #5f5f5f,
-          0px 0px 0px 5px #ecf0f3,
-          8px 8px 15px #a7aaa7,
-          -8px -8px 15px #fff;
+  .app-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+      text-align: center;
+      margin-bottom: 4px;
   }
 
-  .wrapper .name {
-      font-weight: 600;
-      font-size: 1.4rem;
-      letter-spacing: 1.3px;
-      padding-left: 10px;
-      color: #555;
-  }
-
-  .wrapper .form-field input {
-      width: 100%;
-      display: block;
-      border: none;
-      outline: none;
-      background: none;
-      font-size: 1.2rem;
+  .subtitle {
+      font-size: 14px;
       color: #666;
-      padding: 10px 15px 10px 10px;
-      /* border: 1px solid red; */
+      text-align: center;
+      margin-bottom: 32px;
   }
 
-  .wrapper .form-field {
-      padding-left: 10px;
+  /* Role Selector */
+  .role-selector {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 4px;
+      background: #f8f9fa;
+      border-radius: 8px;
+  }
+
+  .role-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s ease;
+  }
+
+  .role-btn i {
+      font-size: 16px;
+  }
+
+  .role-btn.active {
+      background: #03A9F4;
+      color: white;
+      box-shadow: 0 2px 4px rgba(3, 169, 244, 0.2);
+  }
+
+  .role-btn:not(.active):hover {
+      background: #e9ecef;
+      color: #333;
+  }
+
+  /* Form Styles */
+  .form-group {
       margin-bottom: 20px;
-      border-radius: 20px;
-      box-shadow: inset 8px 8px 8px #cbced1, inset -8px -8px 8px #fff;
   }
 
-  .wrapper .form-field .fas {
-      color: #555;
+  .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 8px;
   }
 
-  .wrapper .btn {
-      box-shadow: none;
+  .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+  }
+
+  .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      color: #999;
+      font-size: 14px;
+  }
+
+  .input-wrapper input {
       width: 100%;
-      height: 40px;
-      background-color: #03A9F4;
-      color: #fff;
-      border-radius: 25px;
-      box-shadow: 3px 3px 3px #b1b1b1,
-          -3px -3px 3px #fff;
-      letter-spacing: 1.3px;
+      padding: 12px 14px 12px 42px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #333;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
   }
 
-  .wrapper .btn:hover {
-      background-color: #039BE5;
+  .input-wrapper input:focus {
+      outline: none;
+      border-color: #03A9F4;
+      box-shadow: 0 0 0 3px rgba(3, 169, 244, 0.1);
   }
 
-  .wrapper a {
-      text-decoration: none;
-      font-size: 0.8rem;
-      color: #03A9F4;
+  .input-wrapper input::placeholder {
+      color: #aaa;
   }
 
-  .wrapper a:hover {
-      color: #039BE5;
+  /* Toggle Password Button */
+  .toggle-password {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      transition: color 0.2s ease;
   }
 
-  @media(max-width: 380px) {
-      .wrapper {
-          margin: 30px 20px;
-          padding: 40px 15px 15px 15px;
+  .toggle-password:hover {
+      color: #666;
+  }
+
+  .toggle-password i {
+      font-size: 14px;
+  }
+
+  /* Button */
+  .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: #03A9F4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+  }
+
+  .btn-login:hover {
+      background: #0288D1;
+  }
+
+  .btn-login:active {
+      transform: translateY(1px);
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+      .login-wrapper {
+          padding: 32px 24px;
+      }
+
+      .app-title {
+          font-size: 22px;
+      }
+
+      .subtitle {
+          font-size: 13px;
+      }
+
+      .role-btn {
+          font-size: 13px;
+          padding: 10px 12px;
+      }
+
+      .role-btn span {
+          display: none;
+      }
+
+      .role-btn i {
+          font-size: 18px;
       }
   }
 </style>

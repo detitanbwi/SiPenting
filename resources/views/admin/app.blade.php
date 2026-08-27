@@ -65,6 +65,22 @@
                 padding-left: 0;
                 padding-right: 0;
             }
+            body.sb-sidenav-toggled .sidebar-footer {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+                align-items: center;
+            }
+            body.sb-sidenav-toggled .sidebar-logout-btn {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 9999px;
+                margin-top: 0 !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
         }
         @media (max-width: 1023.98px) {
             #layoutSidenav_nav {
@@ -166,7 +182,11 @@
     </div>
 
     <!-- Scripts -->
+    <!-- jQuery MUST be loaded first, before any page-specific scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    
     @stack('scripts')
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="{{ asset('src/admin/js/scripts.js') }}"></script>

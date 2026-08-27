@@ -95,36 +95,40 @@ class dashboardController extends Controller
 
     public function addPuskesmas(Request $request) {
         $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:100',
+            'nama' => 'required|string|max:100|unique:akun_puskesmas,name',
             'nomor' => 'required|string|regex:/^[0-9]{10,15}$/|unique:akun_puskesmas,nomor',
             'kec' => 'required|exists:districts,id',
             'password' => 'required|string|min:8|max:100',
             'confirm_password' => 'required|same:password',
         ]);
 
-        // Jika kecamatan Bondowoso (3511100), tambahkan validasi desa
-        if ($request->kec == '3511100') {
-            $validator->after(function ($validator) use ($request) {
-                if (empty($request->desa) || !is_array($request->desa)) {
-                    $validator->errors()->add('desa', 'Minimal pilih satu desa.');
-                }
-            });
-        }
+        // Tambahkan validasi desa untuk semua kecamatan
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->desa) || !is_array($request->desa)) {
+                $validator->errors()->add('desa', 'Minimal pilih satu desa.');
+            }
+        });
 
         if ($validator->fails()) {
             return ResponseFormatter::error(null,$validator->errors(),422);
         };
 
         try{
-            $inputPassword = $request->input('password');
-            $semuaAkun = akun_puskesmas::all();
+            // Cek apakah ada desa yang sudah dipakai oleh Puskesmas lain
+            $desaTerpakai = DB::table('pivot_puskesmas_village')
+                ->whereIn('village_id', $request->desa)
+                ->pluck('village_id')
+                ->toArray();
 
-            foreach ($semuaAkun as $akun) {
-                if (Hash::check($inputPassword, $akun->password)) {
-                    return ResponseFormatter::error(null, [
-                        'password' => ['Password sudah digunakan Akun lain']
+            if (!empty($desaTerpakai)) {
+                $namaDesaTerpakai = DB::table('villages')
+                    ->whereIn('id', $desaTerpakai)
+                    ->pluck('name')
+                    ->toArray();
+
+                return ResponseFormatter::error(null, [
+                    'desa' => ['Desa berikut sudah digunakan oleh Puskesmas lain: ' . implode(', ', $namaDesaTerpakai)]
                     ], 422);
-                }
             }
 
             $hashPassword = Hash::make($request->password);
@@ -136,31 +140,12 @@ class dashboardController extends Controller
                 'password' => $hashPassword,
             ]);
 
-            if ($request->kec == '3511100') {
-                // Cek apakah ada desa yang sudah dipakai oleh Puskesmas lain
-                $desaTerpakai = DB::table('pivot_puskesmas_village')
-                    ->whereIn('village_id', $request->desa)
-                    ->pluck('village_id')
-                    ->toArray();
-
-                if (!empty($desaTerpakai)) {
-                    $namaDesaTerpakai = DB::table('villages')
-                        ->whereIn('id', $desaTerpakai)
-                        ->pluck('name')
-                        ->toArray();
-
-                    return ResponseFormatter::error(null, [
-                        'desa' => ['Desa berikut sudah digunakan oleh Puskesmas lain: ' . implode(', ', $namaDesaTerpakai)]
-                    ], 422);
-                }
-
-                // Insert desa baru
-                foreach ($request->desa as $village_id) {
-                    DB::table('pivot_puskesmas_village')->insert([
-                        'puskesmas_id' => $data->id,
-                        'village_id' => $village_id
-                    ]);
-                }
+            // Insert desa baru
+            foreach ($request->desa as $village_id) {
+                DB::table('pivot_puskesmas_village')->insert([
+                    'puskesmas_id' => $data->id,
+                    'village_id' => $village_id
+                ]);
             }
 
 
@@ -174,27 +159,38 @@ class dashboardController extends Controller
 
     public function changePassword($id, Request $request) {
         $validator = Validator::make($request->all(), [
-            'nama' => 'string|max:100',
+            'nama' => 'string|max:100|unique:akun_puskesmas,name,' . $id,
             'nomor' => 'string|regex:/^[0-9]{10,15}$/|unique:akun_puskesmas,nomor,' . $id,
             'kec' => 'exists:districts,id',
             'password' => 'string|min:8|max:100|nullable',
             'confirm_password' => 'same:password|nullable',
         ]);
 
-        // Jika kecamatan Bondowoso (3511100), tambahkan validasi desa
-        if ($request->kec == '3511100') {
-            $validator->after(function ($validator) use ($request) {
-                if (empty($request->desa) || !is_array($request->desa)) {
-                    $validator->errors()->add('desa', 'Minimal pilih satu desa.');
-                }
-            });
-        }
+        // Tambahkan validasi desa untuk semua kecamatan
+        $validator->after(function ($validator) use ($request) {
+            if (empty($request->desa) || !is_array($request->desa)) {
+                $validator->errors()->add('desa', 'Minimal pilih satu desa.');
+            }
+        });
 
         if ($validator->fails()) {
             return ResponseFormatter::error(null,$validator->errors(),422);
         };
 
         try{
+            // Cek apakah ada desa yang sudah dipakai oleh Puskesmas lain
+            $desaTerpakai = DB::table('pivot_puskesmas_village')
+                ->whereIn('village_id', $request->desa)
+                ->where('puskesmas_id', '!=', $id)
+                ->pluck('village_id')
+                ->toArray();
+
+            if (!empty($desaTerpakai)) {
+                return ResponseFormatter::error(null, [
+                    'desa' => ['Beberapa desa sudah digunakan oleh Puskesmas lain.']
+                ], 422);
+            }
+
             $hashPassword = Hash::make($request->password);
             $data = akun_puskesmas::find($id); 
             $updateData = [
@@ -207,34 +203,15 @@ class dashboardController extends Controller
             // Update data
             $data->update($updateData);
 
-            // Update desa pivot table
-            if ($request->kec == '3511100') {
-                // Cek apakah ada desa yang sudah dipakai oleh Puskesmas lain
-                $desaTerpakai = DB::table('pivot_puskesmas_village')
-                    ->whereIn('village_id', $request->desa)
-                    ->where('puskesmas_id', '!=', $id)
-                    ->pluck('village_id')
-                    ->toArray();
+            // Hapus desa lama dulu
+            DB::table('pivot_puskesmas_village')->where('puskesmas_id', $id)->delete();
 
-                if (!empty($desaTerpakai)) {
-                    return ResponseFormatter::error(null, [
-                        'desa' => ['Beberapa desa sudah digunakan oleh Puskesmas lain.']
-                    ], 422);
-                }
-
-                // Hapus desa lama dulu
-                DB::table('pivot_puskesmas_village')->where('puskesmas_id', $id)->delete();
-
-                // Insert desa baru
-                foreach ($request->desa as $village_id) {
-                    DB::table('pivot_puskesmas_village')->insert([
-                        'puskesmas_id' => $id,
-                        'village_id' => $village_id
-                    ]);
-                }
-            } else {
-                // Jika kecamatan bukan 3511100, hapus desa pivot yang mungkin ada
-                DB::table('pivot_puskesmas_village')->where('puskesmas_id', $id)->delete();
+            // Insert desa baru
+            foreach ($request->desa as $village_id) {
+                DB::table('pivot_puskesmas_village')->insert([
+                    'puskesmas_id' => $id,
+                    'village_id' => $village_id
+                ]);
             }
 
 

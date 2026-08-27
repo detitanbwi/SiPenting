@@ -18,6 +18,23 @@
             word-wrap: break-word !important; /* Memastikan teks terbungkus di dalam cell */
             display: block;
         }
+        
+        /* Loading button animation */
+        #btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .btn-loading {
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+            border-width: 0.15em;
+        }
     </style>
      
 @endpush
@@ -141,9 +158,13 @@
                   <i class="bx bx-x d-block d-sm-none"></i>
                   <span class="d-none d-sm-block">Batal</span>
               </button>
-              <button type="submit" class="btn btn-primary ms-1">
+              <button type="submit" class="btn btn-primary ms-1" id="btn-submit">
                   <i class="bx bx-check d-block d-sm-none"></i>
-                  <span class="d-none d-sm-block">Simpan</span>
+                  <span class="d-none d-sm-block btn-text">Simpan</span>
+                  <span class="d-none btn-loading">
+                      <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                      Menyimpan...
+                  </span>
               </button>
           </div>
         </form>
@@ -154,7 +175,6 @@
 @endsection
 
 @push('scripts')
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
 <!-- CSS Choices -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
@@ -343,6 +363,12 @@
         $('#form-akun').submit(function(e) {
             e.preventDefault();
 
+            // Cegah double submit
+            const submitBtn = $('#btn-submit');
+            if (submitBtn.prop('disabled')) {
+                return false;
+            }
+
             if(idAkunPuskesmas !== undefined){
                 url = "{{ route('bapeda.changePassword', ['id' => ':id']) }}";
                 url = url.replace(':id', idAkunPuskesmas)
@@ -359,7 +385,13 @@
                 processData: false,
                 contentType: false,
                 beforeSend: function() {
+                    // Remove previous validation errors
                     $('*').removeClass('is-invalid');
+                    
+                    // Disable submit button dan tampilkan loading
+                    submitBtn.prop('disabled', true);
+                    submitBtn.find('.btn-text').addClass('d-none');
+                    submitBtn.find('.btn-loading').removeClass('d-none').addClass('d-sm-block');
                 },
                 success: function(response) {
                     $('#modal-akun').modal('hide');
@@ -394,6 +426,12 @@
                         })
                         break;
                     }
+                },
+                complete: function() {
+                    // Enable button kembali dan sembunyikan loading
+                    submitBtn.prop('disabled', false);
+                    submitBtn.find('.btn-text').removeClass('d-none');
+                    submitBtn.find('.btn-loading').addClass('d-none').removeClass('d-sm-block');
                 }
             });
         });
@@ -455,23 +493,19 @@
             const desaContainer = document.getElementById('desa-container');
             const desaElement = document.getElementById('desa');
 
-            if (!kecamatanId) {
-                desaContainer.style.display = 'none';
-                if (desaChoices) {
-                    desaChoices.destroy();
-                    desaChoices = null;
-                }
-                desaElement.innerHTML = '';
-                return;
-            }
-
-            desaContainer.style.display = 'block';
-            desaElement.innerHTML = '';
-
+            // Hapus instance Choices lama jika ada
             if (desaChoices) {
                 desaChoices.destroy();
                 desaChoices = null;
             }
+            desaElement.innerHTML = '';
+
+            if (!kecamatanId) {
+                desaContainer.style.display = 'none';
+                return;
+            }
+
+            desaContainer.style.display = 'block';
 
             // Fetch desa berdasarkan kecamatan via AJAX
             $.ajax({

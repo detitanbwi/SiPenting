@@ -28,16 +28,13 @@ Route::get('/kontak/', function() {
         return response()->json(['message' => 'Desa atau kecamatan tidak ditemukan'], 404);
     }
 
-    $puskesmas = null;
+    // Pertama, coba cari Puskesmas yang dikaitkan langsung dengan desa ini melalui pivot
+    $puskesmas = akun_puskesmas::whereHas('villages', function ($query) use ($idVillage) {
+        $query->where('villages.id', $idVillage);
+    })->first();
 
-    if ($desa->district->id == '3511100') {
-        // Kecamatan Bondowoso → ambil dari pivot relasi puskesmas_village
-        $puskesmas = akun_puskesmas::whereHas('villages', function ($query) use ($idVillage) {
-            $query->where('villages.id', $idVillage);
-        })->first();
-
-    } else {
-        // Selain Kecamatan Bondowoso → ambil dari kolom id_district
+    // Jika tidak ditemukan di pivot (misalnya data lama selain Bondowoso), fallback mencari berdasarkan kecamatan
+    if (!$puskesmas) {
         $puskesmas = akun_puskesmas::where('id_district', $desa->district->id)->first();
     }
 

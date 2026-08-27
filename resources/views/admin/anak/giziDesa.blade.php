@@ -41,7 +41,6 @@
 @push('scripts')
 <script src="{{ asset('src/admin/js/datatables-simple-demo.js') }}"></script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdn.datatables.net/2.0.1/js/dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.0.0/js/dataTables.buttons.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.0.0/js/buttons.dataTables.js"></script>

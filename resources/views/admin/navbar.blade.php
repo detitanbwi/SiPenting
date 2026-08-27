@@ -1,4 +1,4 @@
-<nav class="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-8 z-40 shadow-sm">
+<nav class="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-8 shadow-sm" style="z-index: 1000;">
     <!-- Brand / Toggle -->
     <div class="flex items-center gap-4">
         <button class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 focus:outline-none transition-colors" id="sidebarToggle">
@@ -12,25 +12,15 @@
 
 
 
-    <!-- User Profile Dropdown -->
+    <!-- User Profile Display (No Dropdown) -->
     <div class="flex items-center gap-4">
-        <div class="relative dropdown">
-            <button class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors focus:outline-none" id="navbarDropdown">
-                <div class="h-8 w-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center font-semibold text-sm">
-                    {{ strtoupper(substr(auth()->user()->name ?? auth('puskesmas')->user()->name ?? auth('bapeda')->user()->name ?? 'A', 0, 1)) }}
-                </div>
-                <span class="hidden md:inline text-sm font-medium text-slate-700">
-                    {{ auth()->user()->name ?? auth('puskesmas')->user()->name ?? auth('bapeda')->user()->name ?? 'Admin' }}
-                </span>
-                <i class="fas fa-chevron-down text-xs text-slate-400"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-lg shadow-lg py-1 z-50 list-none hidden" aria-labelledby="navbarDropdown">
-                <li>
-                    <a class="dropdown-item flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium border-t border-slate-100" href="{{ route('logout-web') }}">
-                        <i class="fas fa-sign-out-alt text-red-400"></i> Keluar
-                    </a>
-                </li>
-            </ul>
+        <div class="flex items-center gap-2 p-1.5">
+            <div class="h-8 w-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center font-semibold text-sm">
+                {{ strtoupper(substr(auth()->user()->name ?? auth('puskesmas')->user()->name ?? auth('bapeda')->user()->name ?? 'A', 0, 1)) }}
+            </div>
+            <span class="hidden md:inline text-sm font-medium text-slate-700">
+                {{ auth()->user()->name ?? auth('puskesmas')->user()->name ?? auth('bapeda')->user()->name ?? 'Admin' }}
+            </span>
         </div>
     </div>
 </nav>
@@ -67,7 +57,6 @@
     </div>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
     $(document).ready(function () {
         // Event delegation to handle clicks on dynamically generated buttons
@@ -143,19 +132,5 @@
                 }
             });
         })
-
-        // Toggle Profile Dropdown manually
-        $('#navbarDropdown').click(function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $(this).next('.dropdown-menu').toggleClass('hidden');
-        });
-
-        // Hide when clicking outside
-        $(document).click(function(e) {
-            if (!$(e.target).closest('.dropdown').length) {
-                $('.dropdown-menu').addClass('hidden');
-            }
-        });
     })
 </script>

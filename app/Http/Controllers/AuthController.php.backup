@@ -352,9 +352,8 @@ class AuthController extends Controller
     }
 
     public function loginBapeda(Request $request) {
-        // Validasi input username dan password
+        // Validasi input hanya untuk username
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string',
             'password' => 'required|string|min:8',
         ]);
     
@@ -364,25 +363,16 @@ class AuthController extends Controller
         }
     
         try {
-            // Ambil username dan password dari request
-            $username = $request->input('username');
-            $password = $request->input('password');
+            // Mencari user berdasarkan username
+            $password = $request->input('password');  // Ambil input password dari form
+            $akunBapeda = akun_bapeda::first();       // Ambil satu-satunya akun bapeda dari database
 
-            // Cari akun bapeda berdasarkan username (kolom name)
-            $akunBapeda = akun_bapeda::where('name', $username)->first();
-
-            // Validasi jika username tidak ditemukan
-            if (!$akunBapeda) {
-                return redirect()->route('login')->with('error', 'Username tidak ditemukan.');
+            if ($akunBapeda && Hash::check($password, $akunBapeda->password)) {
+                Auth::guard('bapeda')->login($akunBapeda);
+                // Redirect atau logic setelah login sukses
+            } else {
+                return redirect()->route('login')->with('error', 'Password salah atau akun tidak ditemukan.');
             }
-
-            // Verifikasi password
-            if (!Hash::check($password, $akunBapeda->password)) {
-                return redirect()->route('login')->with('error', 'Password salah.');
-            }
-
-            // Login menggunakan guard 'bapeda'
-            Auth::guard('bapeda')->login($akunBapeda);
 
             // Regenerasi session untuk mencegah session fixation attacks
             $request->session()->regenerate();
@@ -396,9 +386,8 @@ class AuthController extends Controller
     }   
 
     public function loginPuskesmas(Request $request) {
-        // Validasi input username dan password
+        // Validasi input hanya untuk username
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string',
             'password' => 'required|string|min:8',
         ]);
     
@@ -408,25 +397,19 @@ class AuthController extends Controller
         }
     
         try {
-            // Ambil username dan password dari request
-            $username = $request->input('username');
+            // Mencari user berdasarkan username
             $password = $request->input('password');
 
-            // Cari akun puskesmas berdasarkan username (kolom name)
-            $akunPuskesmas = akun_puskesmas::where('name', $username)->first();
+            $akunPuskesmas = akun_puskesmas::all()->filter(function($akun) use ($password) {
+                return Hash::check($password, $akun->password);
+            })->first();
 
-            // Validasi jika username tidak ditemukan
-            if (!$akunPuskesmas) {
-                return redirect()->route('login')->with('error', 'Username tidak ditemukan.');
+            if ($akunPuskesmas) {
+                Auth::guard('puskesmas')->login($akunPuskesmas);
+                // lanjutkan login
+            } else {
+                return redirect()->route('login')->with('error', 'Akun tidak ditemukan.');
             }
-
-            // Verifikasi password
-            if (!Hash::check($password, $akunPuskesmas->password)) {
-                return redirect()->route('login')->with('error', 'Password salah.');
-            }
-
-            // Login menggunakan guard 'puskesmas'
-            Auth::guard('puskesmas')->login($akunPuskesmas);
 
             // Regenerasi session untuk mencegah session fixation attacks
             $request->session()->regenerate();
