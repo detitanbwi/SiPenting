@@ -91,11 +91,17 @@ class kalkulatorStuntingController extends Controller
         }
 
         // Cek Usia
-        $usia = round(Carbon::parse(Auth::user()->tanggalLahir)->diffInYears(now()));
-        if ($usia < 19){
-            $issues["usia"] = "Usia Ibu: $usia kurang dar 19th beresiko stunting, segera periksa ke bidan!";
-        }elseif ($usia > 35){
-            $issues["usia"] = "Usia Ibu: $usia kurang dar 35th beresiko stunting, segera periksa ke bidan!";
+        if (!Auth::user()->tanggalLahir) {
+            $issues["usia"] = "Data Tanggal Lahir belum diisi, Silahkan lengkapi profil Anda!";
+        } else {
+            $usia = round(Carbon::parse(Auth::user()->tanggalLahir)->diffInYears(now()));
+            if ($usia < 19){
+                $issues["usia"] = "Usia Ibu: $usia tahun kurang dari 19th beresiko stunting, segera periksa ke bidan!";
+            }elseif ($usia > 35){
+                $issues["usia"] = "Usia Ibu: $usia tahun lebih dari 35th beresiko stunting, segera periksa ke bidan!";
+            }else{
+                $issues["usia"] = "Usia Ibu: $usia tahun (Usia reproduksi sehat/ideal)";
+            }
         }
 
         // Return the response based on the findings
@@ -293,6 +299,98 @@ class kalkulatorStuntingController extends Controller
             Log::error($e->getMessage());
             return ResponseFormatter::error(null, $e->getMessage(), 500);
         };
+    }
+
+    public function cekStuntingIbuGuest(Request $request){
+        $validator = Validator::make($request->all(), [
+            'lila' => 'required|numeric',
+            'hb' => 'required|numeric',
+            'bbPraHamil' => 'required|numeric',
+            'tinggiBadan' => 'required|numeric',
+            'tglLahir' => 'nullable|date',
+            'tanggalLahir' => 'nullable|date',
+        ]);
+
+        if ($validator->fails()) {
+            $error = $validator->errors()->all();
+            return ResponseFormatter::error(null, $error[0], 422);
+        }
+
+        try {
+            $lila = $request->lila;
+            $hb = $request->hb;
+            $bbPraHamil = $request->bbPraHamil;
+            $tinggiBadan = $request->tinggiBadan;
+            $tglLahir = $request->tanggalLahir ?? $request->tglLahir;
+
+            $lilaThreshold = 23.5;
+            $issues = [];
+
+            // Check LILA
+            if ($lila < $lilaThreshold){
+                $issues["lila"] = "Lingkar lengan atas terlalu rendah! (LILA: $lila cm, rekomendasi minimal $lilaThreshold cm)";
+            }else{
+                $issues["lila"] = "Pertahankan! (LILA: $lila cm, harus minimal $lilaThreshold cm)";
+            }
+
+            // Check HB
+            if ($hb == 1){
+                $issues["hb"] = "Hemoglobin normal";
+            }
+            elseif ($hb == 2){
+                $issues["hb"] = "Status Anda anemia ringan, rekomendasi HB Normal diatas 11!";
+            }
+            elseif ($hb == 3){
+                $issues["hb"] = "Status Anda anemia sedang, rekomendasi HB Normal diatas 11!";
+            }
+            elseif ($hb == 4){
+                $issues["hb"] = "Status Anda anemia berat, rekomendasi HB Normal diatas 11!";
+            }
+            elseif ($hb == 5){
+                $issues["hb"] = "Segera cek kadar Hemoglobin di Puskesmas terdekat!";
+            }
+
+            // Cek parameter tinggi badan dan bbprahamil
+            if (!$bbPraHamil || $bbPraHamil == 0 || !$tinggiBadan || $tinggiBadan == 0){
+                $issues["IMT"] = "Data Berat Badan PraHamil / Tinggi Badan tidak boleh kosong!";
+            } else {
+                $IMT = number_format($bbPraHamil / (($tinggiBadan / 100) ** 2), 2);
+
+                if ($IMT < 18.5){
+                    $issues["IMT"] = "Anda Memiliki Tinggi (". intval($tinggiBadan) . ") dan Berat Badan PraHamil (" .intval($bbPraHamil) . ") Sehingga IMT PraKehamilan: $IMT, rekomendasi Peningkatan Berat Badan: 12.5 - 18 Kg";
+                }elseif ($IMT >= 18.5 && $IMT <= 24.9){
+                    $issues["IMT"] = "Anda Memiliki Tinggi (". intval($tinggiBadan) . ") dan Berat Badan PraHamil (" .intval($bbPraHamil) . ") Sehingga IMT PraKehamilan: $IMT, rekomendasi Peningkatan Berat Badan: 11.5 - 16 Kg";
+                }elseif ($IMT >= 25 && $IMT <= 29.9){
+                    $issues["IMT"] = "Anda Memiliki Tinggi (". intval($tinggiBadan) . ") dan Berat Badan PraHamil (" .intval($bbPraHamil) . ") Sehingga IMT PraKehamilan: $IMT, rekomendasi Peningkatan Berat Badan: 7 - 11.5 Kg";
+                }elseif ($IMT >= 30){
+                    $issues["IMT"] = "Anda Memiliki Tinggi (". intval($tinggiBadan) . ") dan Berat Badan PraHamil (" .intval($bbPraHamil) . ") Sehingga IMT PraKehamilan: $IMT, rekomendasi Peningkatan Berat Badan: 5 - 9 Kg";
+                }
+            }
+
+            // Cek Usia
+            if (!$tglLahir) {
+                $issues["usia"] = "Data Tanggal Lahir tidak diisi!";
+            } else {
+                $usia = round(Carbon::parse($tglLahir)->diffInYears(now()));
+                if ($usia < 19){
+                    $issues["usia"] = "Usia Ibu: $usia tahun kurang dari 19th beresiko stunting, segera periksa ke bidan!";
+                }elseif ($usia > 35){
+                    $issues["usia"] = "Usia Ibu: $usia tahun lebih dari 35th beresiko stunting, segera periksa ke bidan!";
+                }else{
+                    $issues["usia"] = "Usia Ibu: $usia tahun (Usia reproduksi sehat/ideal)";
+                }
+            }
+
+            // Return response
+            if (!empty($issues)) {
+                return ResponseFormatter::success($issues, "Data stunting Ibu berhasil diproses!");
+            } else {
+                return ResponseFormatter::success("Kesalahan Server");
+            }
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return ResponseFormatter::error(null, $e->getMessage(), 500);
+        }
     }
 }
  
