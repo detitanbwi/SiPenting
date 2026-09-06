@@ -58,7 +58,7 @@
     <!-- Modal Create Artikel -->
     <div class="modal fade" id="modal-create-artikel" tabindex="-1" role="dialog" aria-labelledby="modalCreate"
         aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Tambah Artikel</h5>
@@ -97,8 +97,8 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="deskripsi">Deskripsi <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" name="deskripsi" id="deskripsi" placeholder="Isi Deskripsi" autofocus autocomplete="off"
-                                        rows="4"></textarea>
+                                    <textarea class="form-control" name="deskripsi" id="deskripsi" placeholder="Isi Deskripsi Konten Artikel" autofocus autocomplete="off"
+                                        rows="8"></textarea>
                                     <div class="invalid-feedback deskripsi_error"></div>
                                 </div>
                             </div>
@@ -315,6 +315,11 @@
                 $('#modal-image').modal('show'); // Show the modal
             });
 
+            // Helper to encode UTF-8 string to Base64 (WAF Bypass)
+            function utf8_to_b64(str) {
+                return window.btoa(unescape(encodeURIComponent(str)));
+            }
+
             // Submit Form Create art
             $('#form-create-artikel').submit(function(e) {
                 e.preventDefault();
@@ -327,6 +332,12 @@
                 }
 
                 var formData = new FormData($("#form-create-artikel")[0]);
+
+                var rawDeskripsi = $("#deskripsi").val();
+                if (rawDeskripsi) {
+                    formData.set('deskripsi', utf8_to_b64(rawDeskripsi));
+                    formData.set('is_base64', '1');
+                }
 
                 $.ajax({
                     type: "POST",

@@ -56,7 +56,7 @@ class artikelController extends Controller
 
     public function storeArtikel(Request $request) {
         $validator = Validator::make($request->all(), [
-            'judul' => 'required|string|max:120',
+            'judul' => 'required|string|max:255',
             'kategori' => 'required|string|max:50',
             'deskripsi' => 'required|string',
             'gambar' => 'required|max:3000|mimes:png,jpg',
@@ -68,6 +68,14 @@ class artikelController extends Controller
         };
 
         try {
+            $deskripsi = $request->deskripsi;
+            if ($request->is_base64 == '1' || (is_string($deskripsi) && base64_encode(base64_decode($deskripsi, true)) === $deskripsi)) {
+                $decoded = base64_decode($deskripsi, true);
+                if ($decoded !== false) {
+                    $deskripsi = $decoded;
+                }
+            }
+
             if($request->file('gambar')){
                 $nameGambar = time() . '_' . $request->file('gambar')->getClientOriginalName();
                 Storage::putFileAs('public/artikel', $request->file('gambar'), $nameGambar);
@@ -76,7 +84,7 @@ class artikelController extends Controller
             $data = artikel::create([
                 'judul' => $request->judul,
                 'kategori' => $request->kategori,
-                'deskripsi' => $request->deskripsi,
+                'deskripsi' => $deskripsi,
                 'gambar' => $nameGambar,
                 'url_video' => $request->video,
             ]);
@@ -90,7 +98,7 @@ class artikelController extends Controller
 
     public function updateArtikel(Request $request, $id) {
         $validator = Validator::make($request->all(), [
-            'judul' => 'string|max:120',
+            'judul' => 'string|max:255',
             'kategori' => 'string|max:50',
             'deskripsi' => 'string',
             'gambar' => 'max:3000|mimes:png,jpg',
@@ -103,11 +111,20 @@ class artikelController extends Controller
 
         try {
             $data = artikel::find($id);
+
+            $deskripsi = $request->deskripsi;
+            if ($request->is_base64 == '1' || (is_string($deskripsi) && base64_encode(base64_decode($deskripsi, true)) === $deskripsi)) {
+                $decoded = base64_decode($deskripsi, true);
+                if ($decoded !== false) {
+                    $deskripsi = $decoded;
+                }
+            }
+
             $updateData = [
                 'judul' => $request->judul, 
                 'kategori' => $request->kategori, 
-                'deskripsi' => $request->deskripsi,
-                'url_video' =>$request->video
+                'deskripsi' => $deskripsi,
+                'url_video' => $request->video
             ];
 
             if ($request->file('gambar')) {
