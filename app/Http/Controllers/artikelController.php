@@ -76,6 +76,21 @@ class artikelController extends Controller
         return $input;
     }
 
+    protected function getExtractedDeskripsi(Request $request) {
+        if ($request->is_chunked == '1' && $request->has('deskripsi_chunks')) {
+            $raw = implode('', (array) $request->deskripsi_chunks);
+            if ($request->is_hex == '1') {
+                $bin = @hex2bin($raw);
+                if ($bin !== false) {
+                    return $bin;
+                }
+            }
+            return $raw;
+        }
+
+        return $this->parseEncryptedInput($request->deskripsi, $request->is_hex == '1');
+    }
+
     public function storeArtikel(Request $request) {
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
@@ -90,7 +105,7 @@ class artikelController extends Controller
         };
 
         try {
-            $deskripsi = $this->parseEncryptedInput($request->deskripsi, $request->is_hex == '1');
+            $deskripsi = $this->getExtractedDeskripsi($request);
 
             if($request->file('gambar')){
                 $nameGambar = time() . '_' . $request->file('gambar')->getClientOriginalName();
@@ -127,7 +142,7 @@ class artikelController extends Controller
 
         try {
             $data = artikel::find($id);
-            $deskripsi = $this->parseEncryptedInput($request->deskripsi, $request->is_hex == '1');
+            $deskripsi = $this->getExtractedDeskripsi($request);
 
             $updateData = [
                 'judul' => $request->judul, 

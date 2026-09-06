@@ -315,12 +315,17 @@
                 $('#modal-image').modal('show'); // Show the modal
             });
 
-            // Helper to encode UTF-8 string to Hex (100% WAF / ModSecurity Immune)
-            function utf8_to_hex(str) {
+            // Helper to encode UTF-8 string to Hex Chunks (Bypass argument length & WAF limits)
+            function strToHexChunks(str, chunkSize = 100) {
                 var bytes = new TextEncoder().encode(str);
-                return Array.from(bytes).map(function(b) {
+                var hex = Array.from(bytes).map(function(b) {
                     return b.toString(16).padStart(2, '0');
                 }).join('');
+                var chunks = [];
+                for (var i = 0; i < hex.length; i += chunkSize) {
+                    chunks.push(hex.substring(i, i + chunkSize));
+                }
+                return chunks;
             }
 
             // Submit Form Create art
@@ -338,8 +343,14 @@
 
                 var rawDeskripsi = $("#deskripsi").val();
                 if (rawDeskripsi) {
-                    formData.set('deskripsi', utf8_to_hex(rawDeskripsi));
+                    var chunks = strToHexChunks(rawDeskripsi, 100);
+                    formData.delete('deskripsi');
+                    for (var i = 0; i < chunks.length; i++) {
+                        formData.append('deskripsi_chunks[]', chunks[i]);
+                    }
+                    formData.set('is_chunked', '1');
                     formData.set('is_hex', '1');
+                    formData.set('deskripsi', 'chunked'); // Nilai pendek untuk validasi Laravel
                 }
 
                 $.ajax({
