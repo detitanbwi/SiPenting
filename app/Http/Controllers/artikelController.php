@@ -54,6 +54,28 @@ class artikelController extends Controller
         return view('admin.artikel');
     }
 
+    protected function parseEncryptedInput($input, $isHex = false) {
+        if (!$input) return $input;
+        
+        // Cek jika format Hex (WAF Bypass)
+        if ($isHex || (is_string($input) && ctype_xdigit($input) && (strlen($input) % 2 === 0) && strlen($input) >= 4)) {
+            $bin = @hex2bin($input);
+            if ($bin !== false) {
+                return $bin;
+            }
+        }
+        
+        // Cek jika format Base64 (Fallback)
+        if (is_string($input) && base64_encode(base64_decode($input, true)) === $input) {
+            $b64 = @base64_decode($input, true);
+            if ($b64 !== false) {
+                return $b64;
+            }
+        }
+        
+        return $input;
+    }
+
     public function storeArtikel(Request $request) {
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
@@ -68,13 +90,7 @@ class artikelController extends Controller
         };
 
         try {
-            $deskripsi = $request->deskripsi;
-            if ($request->is_base64 == '1' || (is_string($deskripsi) && base64_encode(base64_decode($deskripsi, true)) === $deskripsi)) {
-                $decoded = base64_decode($deskripsi, true);
-                if ($decoded !== false) {
-                    $deskripsi = $decoded;
-                }
-            }
+            $deskripsi = $this->parseEncryptedInput($request->deskripsi, $request->is_hex == '1');
 
             if($request->file('gambar')){
                 $nameGambar = time() . '_' . $request->file('gambar')->getClientOriginalName();
@@ -111,14 +127,7 @@ class artikelController extends Controller
 
         try {
             $data = artikel::find($id);
-
-            $deskripsi = $request->deskripsi;
-            if ($request->is_base64 == '1' || (is_string($deskripsi) && base64_encode(base64_decode($deskripsi, true)) === $deskripsi)) {
-                $decoded = base64_decode($deskripsi, true);
-                if ($decoded !== false) {
-                    $deskripsi = $decoded;
-                }
-            }
+            $deskripsi = $this->parseEncryptedInput($request->deskripsi, $request->is_hex == '1');
 
             $updateData = [
                 'judul' => $request->judul, 

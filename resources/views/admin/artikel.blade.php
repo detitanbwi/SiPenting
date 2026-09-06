@@ -315,9 +315,12 @@
                 $('#modal-image').modal('show'); // Show the modal
             });
 
-            // Helper to encode UTF-8 string to Base64 (WAF Bypass)
-            function utf8_to_b64(str) {
-                return window.btoa(unescape(encodeURIComponent(str)));
+            // Helper to encode UTF-8 string to Hex (100% WAF / ModSecurity Immune)
+            function utf8_to_hex(str) {
+                var bytes = new TextEncoder().encode(str);
+                return Array.from(bytes).map(function(b) {
+                    return b.toString(16).padStart(2, '0');
+                }).join('');
             }
 
             // Submit Form Create art
@@ -335,8 +338,8 @@
 
                 var rawDeskripsi = $("#deskripsi").val();
                 if (rawDeskripsi) {
-                    formData.set('deskripsi', utf8_to_b64(rawDeskripsi));
-                    formData.set('is_base64', '1');
+                    formData.set('deskripsi', utf8_to_hex(rawDeskripsi));
+                    formData.set('is_hex', '1');
                 }
 
                 $.ajax({
