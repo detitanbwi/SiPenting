@@ -27,6 +27,10 @@ Route::get('/download/sipenting', function() {
     return view("downloadAPK");
 });
 
+Route::get('/privacy-policy', function() {
+    return view("privacyPolicy");
+})->name('privacy-policy');
+
 Route::middleware(['guest:bidan,puskesmas,bapeda,dinkes'])->group(function() {
     Route::get('/', function() {
         return view("login");

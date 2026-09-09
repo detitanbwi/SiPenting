@@ -3,7 +3,7 @@
         <div class="flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-2">
             <div class="font-medium">Copyright &copy; SIPENTING 2026</div>
             <div class="flex items-center gap-3 font-semibold">
-                <a href="#" class="hover:text-slate-800 transition-colors">Privacy Policy</a>
+                <a href="{{ route('privacy-policy') }}" target="_blank" class="hover:text-slate-800 transition-colors">Privacy Policy</a>
                 <span class="text-slate-300">&bull;</span>
                 <a href="#" class="hover:text-slate-800 transition-colors">Terms &amp; Conditions</a>
                 <span class="text-slate-300">&bull;</span>
